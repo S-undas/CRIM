@@ -9,8 +9,8 @@ const Navbar = () => {
     textDecoration: "none",
     fontSize: "14px",
     fontWeight: "500",
-    color: isActive ? "#1a1a2e" : "#555",
-    backgroundColor: isActive ? "#e8eaf0" : "transparent",
+    color: isActive ? "#fff" : "#aaa",
+    backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
     transition: "all 0.2s",
   });
  
@@ -21,16 +21,17 @@ const Navbar = () => {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "12px 40px",
-        backgroundColor: "#f0f2f7",
-        borderBottom: "1px solid #e0e3ec",
+        backgroundColor: "#111118",
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
         position: "sticky",
         top: 0,
         zIndex: 100,
       }}
     >
-      <span style={{ fontStyle: "italic", fontWeight: "600", fontSize: "16px", color: "#1a1a2e" }}>
+      <span style={{ fontStyle: "italic", fontWeight: "600", fontSize: "16px", color: "#fff"}}>
         CRIM
       </span>
+      
  
       <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
         <NavLink to="/" end style={linkStyle}>Home</NavLink>
@@ -43,11 +44,11 @@ const Navbar = () => {
       <div
         style={{
           width: "34px", height: "34px", borderRadius: "50%",
-          backgroundColor: "#d0d4e0", display: "flex",
+          backgroundColor: "#2a2a3a", display: "flex",
           alignItems: "center", justifyContent: "center", cursor: "pointer",
         }}
       >
-        <User size={18} color="#555" />
+      <User size={18} color="#aaa" />
       </div>
     </nav>
   );

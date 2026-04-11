@@ -6,36 +6,6 @@ const Home = () => {
   return (
     <div style={{ backgroundColor: "#0d0d14", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8e9f0" }}>
 
-      {/* Nav */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "60px", backgroundColor: "#111118", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ fontSize: "18px", fontWeight: "800", color: "#fff", letterSpacing: "1px" }}>CRIM</div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          {["Home", "Dashboard", "Uploads", "Customers", "Reports"].map((link) => (
-            <span
-              key={link}
-              onClick={() => link !== "Home" && navigate("/" + link.toLowerCase())}
-              style={{
-                padding: "6px 16px",
-                color: link === "Home" ? "#fff" : "#aaa",
-                fontSize: "13px",
-                cursor: "pointer",
-                borderRadius: "6px",
-                backgroundColor: link === "Home" ? "rgba(255,255,255,0.08)" : "transparent",
-                fontWeight: link === "Home" ? "600" : "400",
-              }}
-            >
-              {link}
-            </span>
-          ))}
-        </div>
-        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#2a2a3a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-          </svg>
-        </div>
-      </nav>
-
       {/* Hero */}
       <div style={{ padding: "90px 24px 80px", textAlign: "center" }}>
         <div style={{ display: "inline-block", backgroundColor: "rgba(255,255,255,0.07)", color: "#9a9dc0", fontSize: "11px", fontWeight: "700", padding: "5px 16px", borderRadius: "20px", marginBottom: "28px", letterSpacing: "1.5px", textTransform: "uppercase", border: "1px solid rgba(255,255,255,0.08)" }}>
