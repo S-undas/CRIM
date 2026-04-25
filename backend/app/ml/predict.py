@@ -14,10 +14,13 @@ def get_risk_level(probability: float) -> str:
     else:
         return "High"
 
-def predict_churn(df: pd.DataFrame) -> list:
+def predict_churn(df: pd.DataFrame, customer_ids: list = None) -> list:
     # Store customer IDs before preprocessing removes them
     # (need them to display in the frontend later)
-    customer_ids = df['customerID'].tolist() if 'customerID' in df.columns else list(range(len(df)))
+    # If customer_ids passed in directly (from mapping flow), use those
+    # Otherwise, fall back to original logic
+    if customer_ids is None:
+        customer_ids = df['customerID'].tolist() if 'customerID' in df.columns else list(range(len(df)))
 
     processed_df = preprocess(df)
 
@@ -33,4 +36,19 @@ def predict_churn(df: pd.DataFrame) -> list:
             "riskLevel": get_risk_level(prob)
         })
 
+    return results
+
+
+def predict_from_processed(processed_df: pd.DataFrame, customer_ids: list) -> list:
+    """Run prediction on an already-preprocessed dataframe. Skips preprocessing step.
+    Used by the column mapping flow where preprocessing happens before this call.
+    """
+    probabilities = model.predict_proba(processed_df)[:, 1]
+    results = []
+    for customer_id, prob in zip(customer_ids, probabilities):
+        results.append({
+            "customerID": customer_id,
+            "churnProbability": round(float(prob), 4),
+            "riskLevel": get_risk_level(prob)
+        })
     return results

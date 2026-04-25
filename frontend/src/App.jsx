@@ -12,6 +12,7 @@ import "./index.css";
 const App = () => {
   const [summary, setSummary] = useState(null);
   const [customers, setCustomers] = useState([]);
+  const [uploadState, setUploadState] = useState(null);
 
   const handleData = (data) => {
     setSummary(data.summary);
@@ -25,7 +26,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard summary={summary} customers={customers} />} />
-          <Route path="/uploads" element={<Uploads onData={handleData} />} />
+          <Route path="/uploads" element={<Uploads onData={handleData} uploadState={uploadState} onUploadStateChange={setUploadState} />} />
           <Route path="/customers" element={<Customers customers={customers} />} />
           <Route path="/customers/:id" element={<CustomerProfile customers={customers} />} />
           <Route path="/reports" element={<Reports summary={summary} customers={customers} />} />
