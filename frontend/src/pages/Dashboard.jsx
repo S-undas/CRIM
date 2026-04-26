@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-const Dashboard = ({ summary, setSummary, customers, setCustomers }) => {
+const Dashboard = ({ summary, customers, uploadId }) => {
   const [modalCustomer, setModalCustomer] = useState(null);
   const navigate = useNavigate();
 
@@ -67,7 +67,7 @@ const Dashboard = ({ summary, setSummary, customers, setCustomers }) => {
           <button className="btn btn-secondary" onClick={() => navigate("/customers")}>
             View All Customers →
           </button>
-          <button className="btn btn-primary" onClick={() => navigate("/upload")}>
+          <button className="btn btn-primary" onClick={() => navigate("/uploads")}>
             ↑ Upload CSV
           </button>
         </div>
@@ -84,7 +84,7 @@ const Dashboard = ({ summary, setSummary, customers, setCustomers }) => {
           <p style={{ textAlign: "center", maxWidth: 360 }}>
             Upload a customer CSV file to see churn predictions, risk distribution, and analytics.
           </p>
-          <button className="btn btn-primary" onClick={() => navigate("/upload")} style={{ marginTop: 8 }}>
+          <button className="btn btn-primary" onClick={() => navigate("/uploads")} style={{ marginTop: 8 }}>
             ↑ Upload CSV File
           </button>
         </div>
@@ -179,7 +179,7 @@ const Dashboard = ({ summary, setSummary, customers, setCustomers }) => {
         </>
       )}
 
-      <CustomerModal customer={modalCustomer} onClose={() => setModalCustomer(null)} />
+      <CustomerModal customer={modalCustomer} onClose={() => setModalCustomer(null)} uploadId={uploadId} />
     </div>
   );
 };

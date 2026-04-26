@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.upload import router as upload_router
 from app.routes.evaluate import router as evaluate_router
+from app.routes import recommendations
 
 app = FastAPI()
 
@@ -16,6 +17,8 @@ app.add_middleware(
 
 app.include_router(upload_router, prefix="/api")
 app.include_router(evaluate_router, prefix="/api")
+app.include_router(recommendations.router, prefix="/api")
+
 
 @app.get("/")
 def root():

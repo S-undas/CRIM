@@ -6,31 +6,43 @@ const getRiskClass = (level) => {
   return "badge badge-low";
 };
 
-const CustomerTable = ({ customers, onRowClick }) => {
+const PAGE_SIZE = 50;
+
+const CustomerTable = ({ customers, onRowClick, showAll = false }) => {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const filtered = customers
     .filter((c) => filter === "All" || c.riskLevel === filter)
     .filter((c) => !search || c.customerID.toString().includes(search))
-    .sort((a, b) => b.churnProbability - a.churnProbability)
-    .slice(0, 20);
+    .sort((a, b) => b.churnProbability - a.churnProbability);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const handleFilterChange = (lvl) => {
+    setFilter(lvl);
+    setPage(1);
+  };
+
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
 
   return (
     <div>
       {/* Controls */}
       <div style={{
-        display: "flex",
-        gap: "12px",
-        marginBottom: "16px",
-        flexWrap: "wrap",
-        alignItems: "center",
+        display: "flex", gap: "12px", marginBottom: "16px",
+        flexWrap: "wrap", alignItems: "center",
       }}>
         <input
           type="text"
           placeholder="Search customer ID…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearch}
           style={{ minWidth: 200 }}
         />
         <div style={{ display: "flex", gap: "6px" }}>
@@ -38,10 +50,9 @@ const CustomerTable = ({ customers, onRowClick }) => {
             <button
               key={lvl}
               className="btn btn-secondary"
-              onClick={() => setFilter(lvl)}
+              onClick={() => handleFilterChange(lvl)}
               style={{
-                padding: "6px 14px",
-                fontSize: "0.8rem",
+                padding: "6px 14px", fontSize: "0.8rem",
                 background: filter === lvl ? "var(--accent-glow)" : "var(--bg-elevated)",
                 borderColor: filter === lvl ? "rgba(56,189,248,0.4)" : "var(--border)",
                 color: filter === lvl ? "var(--accent)" : "var(--text-muted)",
@@ -50,7 +61,7 @@ const CustomerTable = ({ customers, onRowClick }) => {
           ))}
         </div>
         <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-dim)" }}>
-          Showing {filtered.length} of {customers.length} customers
+          Showing {paginated.length} of {filtered.length} customers
         </span>
       </div>
 
@@ -71,20 +82,18 @@ const CustomerTable = ({ customers, onRowClick }) => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((c, i) => (
+            {paginated.map((c, i) => (
               <tr key={c.customerID} onClick={() => onRowClick(c)}
-                style={{ animationDelay: `${i * 20}ms` }}>
+                style={{ animationDelay: `${i * 20}ms`, cursor: "pointer" }}>
                 <td className="mono" style={{ color: "var(--text-muted)", fontSize: "0.82rem" }}>
                   #{c.customerID}
                 </td>
                 <td>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <div style={{
-                      width: 80,
-                      height: 6,
+                      width: 80, height: 6,
                       background: "var(--bg-elevated)",
-                      borderRadius: 3,
-                      overflow: "hidden",
+                      borderRadius: 3, overflow: "hidden",
                     }}>
                       <div style={{
                         width: `${c.churnProbability * 100}%`,
@@ -119,6 +128,32 @@ const CustomerTable = ({ customers, onRowClick }) => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{
+          display: "flex", justifyContent: "center", alignItems: "center",
+          gap: 8, marginTop: 16,
+        }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            style={{ padding: "6px 14px", fontSize: "0.8rem", opacity: page === 1 ? 0.4 : 1 }}
+          >← Prev</button>
+
+          <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            className="btn btn-secondary"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            style={{ padding: "6px 14px", fontSize: "0.8rem", opacity: page === totalPages ? 0.4 : 1 }}
+          >Next →</button>
+        </div>
+      )}
     </div>
   );
 };
