@@ -2,6 +2,7 @@ import shap
 import pandas as pd
 import numpy as np
 import os
+import math
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BACKGROUND_PATH = os.path.join(BASE_DIR, 'models', 'background_sample.csv')
@@ -11,7 +12,7 @@ _explainer = None
 def _load_explainer(model):
     global _explainer
     if _explainer is None:
-        background = pd.read_csv(BACKGROUND_PATH).astype(np.float32)  # <-- fix
+        background = pd.read_csv(BACKGROUND_PATH).astype(np.float32)
 
         def predict_churn_proba(X):
             return model.predict_proba(X)[:, 1]
@@ -20,10 +21,14 @@ def _load_explainer(model):
         print("[CRIM] SHAP explainer initialized")
     return _explainer
 
+def safe_float(v):
+    if math.isnan(v) or math.isinf(v):
+        return 0.0
+    return v
+
 def get_shap_values(model, processed_df: pd.DataFrame) -> list:
     explainer = _load_explainer(model)
-    shap_values = explainer(processed_df.astype(np.float32))  
-    # .values shape: (n_samples, n_features)
+    shap_values = explainer(processed_df.astype(np.float32))
     shap_array = shap_values.values
     feature_names = processed_df.columns.tolist()
     results = []
@@ -32,8 +37,8 @@ def get_shap_values(model, processed_df: pd.DataFrame) -> list:
         contributions = [
             {
                 "feature": feature_names[j],
-                "value": float(processed_df.iloc[i, j]),
-                "shapValue": float(shap_array[i, j])
+                "value": safe_float(float(processed_df.iloc[i, j])),
+                "shapValue": safe_float(float(shap_array[i, j]))
             }
             for j in range(len(feature_names))
         ]

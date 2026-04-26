@@ -9,6 +9,7 @@ from app.ml.preprocess import (
     preprocess_with_mapping
 )
 from app.ml.predict import predict_from_processed
+from app.db.crud import save_upload  
 
 router = APIRouter()
 
@@ -18,15 +19,10 @@ async def upload_file(file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
-    # Read the file contents into memory
     contents = await file.read()
-
-    # Convert raw bytes into a pandas DataFrame
     df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
-
     results = predict_churn(df)
 
-    # Calculate summary statistics for the dashboard
     total = len(results)
     churners = sum(1 for r in results if r['riskLevel'] in ['Medium', 'High'])
     high_risk = sum(1 for r in results if r['riskLevel'] == 'High')
@@ -45,7 +41,6 @@ async def upload_file(file: UploadFile = File(...)):
         "customers": results
     }
 
-# Endpoints for column mapping flow (added for multi-dataset support)
 
 def _extract_customer_ids(df: pd.DataFrame) -> list:
     """Try known ID column names; fall back to 1-based row numbers."""
@@ -56,9 +51,10 @@ def _extract_customer_ids(df: pd.DataFrame) -> list:
             return df[col].astype(str).tolist()
     return [str(i + 1) for i in range(len(df))]
 
-# Columns that signal churn label (strip before mapping)
+
 _CHURN_LABEL_COLS = {'Churn', 'churn', 'CHURN', 'churned',
                      'Churn Category', 'Churn Reason', 'Customer Status'}
+
 
 @router.post("/upload/preview")
 async def upload_preview(file: UploadFile = File(...)):
@@ -84,6 +80,7 @@ async def upload_preview(file: UploadFile = File(...)):
         "summary": summary,
         "expectedFeatures": get_base_feature_names(),
     }
+
 
 @router.post("/upload/confirm")
 async def upload_confirm(file: UploadFile = File(...), mapping: str = Form(None)):
@@ -120,14 +117,25 @@ async def upload_confirm(file: UploadFile = File(...), mapping: str = Form(None)
     medium_risk = sum(1 for r in results if r['riskLevel'] == 'Medium')
     low_risk = sum(1 for r in results if r['riskLevel'] == 'Low')
 
+    summary = {
+        "totalCustomers": total,
+        "predictedChurners": churners,
+        "churnRate": round(churners / total * 100, 2),
+        "highRisk": high_risk,
+        "mediumRisk": medium_risk,
+        "lowRisk": low_risk
+    }
+
+    # Save to MongoDB 
+    upload_id = await save_upload(
+        file_name=file.filename,
+        row_count=total,
+        summary=summary,
+        customers=results
+    )
+
     return {
-        "summary": {
-            "totalCustomers": total,
-            "predictedChurners": churners,
-            "churnRate": round(churners / total * 100, 2),
-            "highRisk": high_risk,
-            "mediumRisk": medium_risk,
-            "lowRisk": low_risk
-        },
+        "uploadId": upload_id,    
+        "summary": summary,
         "customers": results
     }
