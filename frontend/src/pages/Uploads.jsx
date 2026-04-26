@@ -721,6 +721,7 @@ const Upload = ({ onData, uploadState, onUploadStateChange }) => {
         throw new Error(e.detail || "Prediction failed");
       }
       const data = await res.json();
+      console.log("API response:", data);  // to see if SHAP working in Devtools
       onData(data);
       navigate("/dashboard");
     } catch (e) {

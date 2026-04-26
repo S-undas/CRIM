@@ -1,6 +1,7 @@
 import pandas as pd
 from app.ml.model import model
 from app.ml.preprocess import preprocess
+from app.ml.shap_explainer import get_shap_values
 
 def get_risk_level(probability: float) -> str:
     # Declaring thresholds
@@ -25,7 +26,8 @@ def predict_churn(df: pd.DataFrame, customer_ids: list = None) -> list:
     processed_df = preprocess(df)
 
     # Returns probability for each class [not churn, churn]
-    probabilities = model.predict_proba(processed_df)[:, 1]
+    probabilities = model.predict_proba(processed_df)[:, 1] 
+    shap_results = get_shap_values(model, processed_df)
 
     # Build result list - one entry per customer
     results = []
@@ -33,22 +35,25 @@ def predict_churn(df: pd.DataFrame, customer_ids: list = None) -> list:
         results.append({
             "customerID": customer_id,
             "churnProbability": round(float(prob), 4),
-            "riskLevel": get_risk_level(prob)
+            "riskLevel": get_risk_level(prob),
+            "shapExplanation": shap_results[i]
         })
 
     return results
 
 
 def predict_from_processed(processed_df: pd.DataFrame, customer_ids: list) -> list:
-    """Run prediction on an already-preprocessed dataframe. Skips preprocessing step.
-    Used by the column mapping flow where preprocessing happens before this call.
-    """
+    """Used by the column mapping flow. Preprocessing already done before this call."""
     probabilities = model.predict_proba(processed_df)[:, 1]
+    shap_results = get_shap_values(model, processed_df)  
+
     results = []
-    for customer_id, prob in zip(customer_ids, probabilities):
+    for i, (customer_id, prob) in enumerate(zip(customer_ids, probabilities)):
         results.append({
             "customerID": customer_id,
             "churnProbability": round(float(prob), 4),
-            "riskLevel": get_risk_level(prob)
+            "riskLevel": get_risk_level(prob),
+            "shapExplanation": shap_results[i]        
         })
+
     return results

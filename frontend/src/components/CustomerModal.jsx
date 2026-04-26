@@ -6,6 +6,64 @@ const getRiskStyle = (level) => {
   return { color: "var(--low)", bg: "var(--low-bg)" };
 };
 
+const formatFeatureName = (name) =>
+  name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const ShapBar = ({ feature, shapValue, value }) => {
+  const isPositive = shapValue > 0;
+  const maxBar = 120;
+  const barWidth = Math.min(Math.abs(shapValue) * 400, maxBar);
+  const color = isPositive ? "#f87171" : "#34d399";
+  const label = isPositive ? "↑ increases risk" : "↓ decreases risk";
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+        <span style={{ fontSize: "0.8rem", color: "var(--text-primary)", fontWeight: 500 }}>
+          {formatFeatureName(feature)}
+        </span>
+        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontFamily: "monospace" }}>
+          val: {typeof value === "number" && !Number.isInteger(value) ? value.toFixed(2) : value}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Negative side */}
+        <div style={{ width: maxBar, display: "flex", justifyContent: "flex-end" }}>
+          {!isPositive && (
+            <div style={{
+              height: 8, width: barWidth,
+              background: color,
+              borderRadius: "4px 0 0 4px",
+              opacity: 0.85,
+              transition: "width 0.5s ease",
+            }} />
+          )}
+        </div>
+
+        {/* Center line */}
+        <div style={{ width: 1, height: 16, background: "var(--border)", flexShrink: 0 }} />
+
+        {/* Positive side */}
+        <div style={{ width: maxBar }}>
+          {isPositive && (
+            <div style={{
+              height: 8, width: barWidth,
+              background: color,
+              borderRadius: "0 4px 4px 0",
+              opacity: 0.85,
+              transition: "width 0.5s ease",
+            }} />
+          )}
+        </div>
+
+        <span style={{ fontSize: "0.72rem", color, whiteSpace: "nowrap", minWidth: 110 }}>
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const CustomerModal = ({ customer, onClose }) => {
   useEffect(() => {
     const handleKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -17,17 +75,19 @@ const CustomerModal = ({ customer, onClose }) => {
 
   const risk = getRiskStyle(customer.riskLevel);
   const pct = (customer.churnProbability * 100).toFixed(1);
+  const shap = customer.shapExplanation || [];
 
   return (
     <div
       onClick={onClose}
       style={{
         position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.7)",
+        background: "rgba(0,0,0,0.75)",
         backdropFilter: "blur(4px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         zIndex: 1000,
         animation: "fadeIn 0.2s ease",
+        padding: "20px",
       }}
     >
       <div
@@ -38,7 +98,9 @@ const CustomerModal = ({ customer, onClose }) => {
           borderRadius: "var(--radius-lg)",
           padding: "32px",
           width: "100%",
-          maxWidth: "460px",
+          maxWidth: "560px",
+          maxHeight: "90vh",
+          overflowY: "auto",
           animation: "fadeUp 0.25s ease",
           boxShadow: "var(--shadow)",
         }}
@@ -95,6 +157,45 @@ const CustomerModal = ({ customer, onClose }) => {
             color: risk.color, textTransform: "uppercase", letterSpacing: "0.05em"
           }}>{customer.riskLevel}</span>
         </div>
+
+        {/* SHAP Explanation */}
+        {shap.length > 0 && (
+          <div style={{
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "var(--radius)",
+            padding: "20px",
+            marginBottom: "20px",
+          }}>
+            <p style={{ margin: "0 0 4px", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)" }}>
+              Why this prediction?
+            </p>
+            <p style={{ margin: "0 0 18px", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+              Top factors influencing this customer's churn risk
+            </p>
+
+            {/* Legend */}
+            <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+              <span style={{ fontSize: "0.72rem", color: "#34d399", display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: "#34d399" }} />
+                Reduces risk
+              </span>
+              <span style={{ fontSize: "0.72rem", color: "#f87171", display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: "#f87171" }} />
+                Increases risk
+              </span>
+            </div>
+
+            {shap.map((s, i) => (
+              <ShapBar
+                key={i}
+                feature={s.feature}
+                shapValue={s.shapValue}
+                value={s.value}
+              />
+            ))}
+          </div>
+        )}
 
         <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", textAlign: "center" }}>
           Press <kbd style={{
