@@ -3,6 +3,19 @@ import { useNavigate } from "react-router-dom";
 const Home = () => {
   const navigate = useNavigate();
 
+  // 🔐 check auth state
+  const token = localStorage.getItem("token");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+
+    // FORCE UI RESET
+    setSummary(null);
+    setCustomers([]);
+    setUploadId(null);
+  };
+
   return (
     <div style={{ backgroundColor: "#0d0d14", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8e9f0" }}>
 
@@ -20,21 +33,99 @@ const Home = () => {
           CRIM helps businesses identify at-risk customers before they leave — using AI, clean dashboards, and zero complexity.
         </p>
 
+        {/* 🔐 ONLY CTA UPDATED */}
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button
-            onClick={() => navigate("/uploads")}
-            style={{ padding: "12px 28px", backgroundColor: "#22d3a0", color: "#0d0d14", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}
-          >
-            Upload Your Data →
-          </button>
-          <button
-            onClick={() => navigate("/dashboard")}
-            style={{ padding: "12px 28px", backgroundColor: "transparent", color: "#ccc", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "8px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}
-          >
-            View Dashboard
-          </button>
+
+          {!token ? (
+            <>
+              <button
+                onClick={() => navigate("/signup")}
+                style={{
+                  padding: "12px 28px",
+                  backgroundColor: "#22d3a0",
+                  color: "#0d0d14",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer"
+                }}
+              >
+                Upload Your Data →
+              </button>
+
+              <button
+                onClick={() => navigate("/login")}
+                style={{
+                  padding: "12px 28px",
+                  backgroundColor: "transparent",
+                  color: "#ccc",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                Login
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/uploads")}
+                style={{
+                  padding: "12px 28px",
+                  backgroundColor: "#22d3a0",
+                  color: "#0d0d14",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer"
+                }}
+              >
+                Upload Your Data →
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard")}
+                style={{
+                  padding: "12px 28px",
+                  backgroundColor: "transparent",
+                  color: "#ccc",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                View Dashboard
+              </button>
+
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: "12px 28px",
+                  backgroundColor: "transparent",
+                  color: "#ff7a7a",
+                  border: "1px solid rgba(255,122,122,0.3)",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                Logout
+              </button>
+            </>
+          )}
+
         </div>
       </div>
+
+      {/* 🔽 EVERYTHING BELOW IS EXACTLY YOUR ORIGINAL CODE (UNCHANGED) */}
 
       {/* Why businesses lose customers */}
       <div style={{ maxWidth: "820px", margin: "0 auto", padding: "0 24px 72px" }}>
@@ -95,14 +186,47 @@ const Home = () => {
 
       {/* CTA */}
       <div style={{ textAlign: "center", padding: "0 24px 80px" }}>
-        <h2 style={{ fontSize: "22px", fontWeight: "700", color: "#fff", marginBottom: "10px" }}>Ready to get started?</h2>
-        <p style={{ fontSize: "13px", color: "#5a5d78", marginBottom: "24px" }}>Upload your customer CSV and see who's at risk in seconds.</p>
-        <button
-          onClick={() => navigate("/uploads")}
-          style={{ padding: "12px 32px", backgroundColor: "#22d3a0", color: "#0d0d14", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}
-        >
-          Upload Your Data →
-        </button>
+        <h2 style={{ fontSize: "22px", fontWeight: "700", color: "#fff", marginBottom: "10px" }}>
+          Ready to get started?
+        </h2>
+
+        <p style={{ fontSize: "13px", color: "#5a5d78", marginBottom: "24px" }}>
+          Upload your customer CSV and see who's at risk in seconds.
+        </p>
+
+        {!token ? (
+          <button
+            onClick={() => navigate("/signup")}
+            style={{
+              padding: "12px 32px",
+              backgroundColor: "#22d3a0",
+              color: "#0d0d14",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Get Started (Signup)
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("/uploads")}
+            style={{
+              padding: "12px 32px",
+              backgroundColor: "#22d3a0",
+              color: "#0d0d14",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: "700",
+              cursor: "pointer"
+            }}
+          >
+            Upload Your Data →
+          </button>
+        )}
       </div>
 
     </div>

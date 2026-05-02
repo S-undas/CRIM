@@ -1,6 +1,17 @@
 import { useState } from "react";
 import CustomerTable from "../components/CustomerTable";
 import CustomerModal from "../components/CustomerModal";
+import { getRecommendations } from "../api/recommendations";
+
+const handleClick = async (customerId) => {
+  const data = await getRecommendations(uploadId, customerId);
+  console.log(data);
+};
+
+const loadData = async () => {
+  const data = await getRecommendations(uploadId, customerId);
+  console.log(data);
+};
 
 const Customers = ({ customers, uploadId }) => {
   const [modalCustomer, setModalCustomer] = useState(null);
