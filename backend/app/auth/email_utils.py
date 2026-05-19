@@ -9,10 +9,12 @@ BREVO_SENDER_EMAIL = "crm.app.dev@gmail.com"
 BREVO_SENDER_NAME = "CRIM"
 
 def send_email(to_email: str, subject: str, body: str):
+    api_key = os.getenv("BREVO_API_KEY")
+    print(f"[BREVO] API key present: {bool(api_key)}, sending to: {to_email}")
     response = requests.post(
         "https://api.brevo.com/v3/smtp/email",
         headers={
-            "api-key": BREVO_API_KEY,
+            "api-key": api_key,
             "Content-Type": "application/json"
         },
         json={
@@ -22,6 +24,7 @@ def send_email(to_email: str, subject: str, body: str):
             "textContent": body
         }
     )
+    print(f"[BREVO] status: {response.status_code}, response: {response.text}")
     if response.status_code != 201:
         raise Exception(f"Brevo error: {response.text}")
 
