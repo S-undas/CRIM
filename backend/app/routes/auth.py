@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from dotenv import load_dotenv
+load_dotenv()
+
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
 
@@ -19,10 +22,6 @@ from app.auth.email_utils import (
 router = APIRouter()
 
 
-# ─────────────────────────────────────────────
-# Request body schemas
-# ─────────────────────────────────────────────
-
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
@@ -34,7 +33,6 @@ class ResetPasswordRequest(BaseModel):
 
 # ─────────────────────────────────────────────
 # SIGNUP
-# Creates account (unverified), sends confirmation email.
 # ─────────────────────────────────────────────
 
 @router.post("/signup")
@@ -58,9 +56,8 @@ async def signup(user: User):
     })
 
     try:
-        send_verification_email(user.email, verification_token)
+        await send_verification_email(user.email, verification_token)
     except Exception as e:
-        # Don't fail signup if email sending breaks — but log it
         print(f"[CRIM] Warning: could not send verification email: {e}")
 
     return {"message": "Account created. Please check your email to verify your account."}
@@ -68,8 +65,6 @@ async def signup(user: User):
 
 # ─────────────────────────────────────────────
 # VERIFY EMAIL
-# Called when user clicks the link in their email.
-# Frontend hits GET /verify-email?token=...
 # ─────────────────────────────────────────────
 
 @router.get("/verify-email")
@@ -100,7 +95,6 @@ async def verify_email(token: str):
 
 # ─────────────────────────────────────────────
 # LOGIN
-# Blocks unverified accounts with a clear message.
 # ─────────────────────────────────────────────
 
 @router.post("/login")
@@ -129,14 +123,12 @@ async def login(user: User):
 
 # ─────────────────────────────────────────────
 # FORGOT PASSWORD
-# Sends a reset link to the user's email.
 # ─────────────────────────────────────────────
 
 @router.post("/forgot-password")
 async def forgot_password(body: ForgotPasswordRequest):
     user = await users_collection.find_one({"email": body.email})
 
-    # Always return success — never reveal whether email exists (security best practice)
     if not user:
         return {"message": "If that email is registered, a reset link has been sent."}
 
@@ -152,7 +144,7 @@ async def forgot_password(body: ForgotPasswordRequest):
     )
 
     try:
-        send_password_reset_email(body.email, reset_token)
+        await send_password_reset_email(body.email, reset_token)
     except Exception as e:
         print(f"[CRIM] Warning: could not send reset email: {e}")
 
@@ -161,7 +153,6 @@ async def forgot_password(body: ForgotPasswordRequest):
 
 # ─────────────────────────────────────────────
 # RESET PASSWORD
-# Validates the token and updates the password.
 # ─────────────────────────────────────────────
 
 @router.post("/reset-password")
