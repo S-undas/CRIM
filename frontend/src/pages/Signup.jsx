@@ -129,8 +129,8 @@ export default function Signup() {
       }
 
       // Success → switch to "check your inbox" screen
-      setRegisteredEmail(email);
-      setSignedUp(true);
+      // Success → go straight to login
+navigate("/login");
     } catch {
       setError("Server error. Try again.");
     } finally {

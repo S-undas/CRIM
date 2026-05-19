@@ -1,32 +1,23 @@
-import requests
+import smtplib
 import os
+from email.mime.text import MIMEText
 from dotenv import load_dotenv
 
 load_dotenv()
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-BREVO_SENDER_EMAIL = "crm.app.dev@gmail.com"
-BREVO_SENDER_NAME = "CRIM"
+GMAIL_USER = os.getenv("MAIL_USERNAME")
+GMAIL_PASS = os.getenv("MAIL_PASSWORD")
 
 def send_email(to_email: str, subject: str, body: str):
-    api_key = os.getenv("BREVO_API_KEY")
-    print(f"[BREVO] API key present: {bool(api_key)}, sending to: {to_email}")
-    response = requests.post(
-        "https://api.brevo.com/v3/smtp/email",
-        headers={
-            "api-key": api_key,
-            "Content-Type": "application/json"
-        },
-        json={
-            "sender": {"name": BREVO_SENDER_NAME, "email": BREVO_SENDER_EMAIL},
-            "to": [{"email": to_email}],
-            "subject": subject,
-            "textContent": body
-        }
-    )
-    print(f"[BREVO] status: {response.status_code}, response: {response.text}")
-    if response.status_code != 201:
-        raise Exception(f"Brevo error: {response.text}")
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = GMAIL_USER
+    msg["To"] = to_email
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(GMAIL_USER, GMAIL_PASS)
+        server.sendmail(GMAIL_USER, to_email, msg.as_string())
+    print(f"[GMAIL] Sent to {to_email}")
 
 async def send_verification_email(to_email: str, token: str):
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")

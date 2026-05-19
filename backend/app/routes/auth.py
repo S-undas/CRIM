@@ -34,7 +34,6 @@ class ResetPasswordRequest(BaseModel):
 # ─────────────────────────────────────────────
 # SIGNUP
 # ─────────────────────────────────────────────
-
 @router.post("/signup")
 async def signup(user: User):
     existing = await users_collection.find_one({"email": user.email})
@@ -42,26 +41,17 @@ async def signup(user: User):
     if existing:
         raise HTTPException(status_code=409, detail="User already exists")
 
-    verification_token = generate_verification_token()
-    token_expiry = datetime.utcnow() + timedelta(hours=24)
-
     await users_collection.insert_one({
         "email": user.email,
         "password": hash_password(user.password),
-        "is_verified": False,
-        "verification_token": verification_token,
-        "verification_token_expiry": token_expiry,
+        "is_verified": True,
+        "verification_token": None,
+        "verification_token_expiry": None,
         "reset_token": None,
         "reset_token_expiry": None,
     })
 
-    try:
-        await send_verification_email(user.email, verification_token)
-    except Exception as e:
-        print(f"[CRIM] Warning: could not send verification email: {e}")
-
-    return {"message": "Account created. Please check your email to verify your account."}
-
+    return {"message": "Account created successfully. You can now log in."}
 
 # ─────────────────────────────────────────────
 # VERIFY EMAIL
@@ -96,7 +86,6 @@ async def verify_email(token: str):
 # ─────────────────────────────────────────────
 # LOGIN
 # ─────────────────────────────────────────────
-
 @router.post("/login")
 async def login(user: User):
     db_user = await users_collection.find_one({"email": user.email})
@@ -107,19 +96,12 @@ async def login(user: User):
     if not verify_password(user.password, db_user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    if not db_user.get("is_verified", False):
-        raise HTTPException(
-            status_code=403,
-            detail="Please verify your email before logging in. Check your inbox."
-        )
-
     token = create_access_token({"email": user.email})
 
     return {
         "access_token": token,
         "token_type": "bearer"
     }
-
 
 # ─────────────────────────────────────────────
 # FORGOT PASSWORD
